@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <!--<meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+    <meta name="viewport" 
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Расчёт по РД 26-01-90-85 (B по черт.25 от ψ₁)</title>
+    <style>
+       :root { color-scheme: light dark; }
+
+html, body {
+  height: 100%;
+}
+
+body{
+  margin: 0;
+  padding: calc(12px + env(safe-area-inset-top)) 12px calc(16px + env(safe-area-inset-bottom));
+  background: var(--tg-bg);
+  color: var(--tg-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+
+  /* убираем "сайт-центровку" */
+  max-width: none;
+}
+
+h1{
+  font-size: 18px;
+  margin: 6px 0 10px;
+}
+
+p{ margin: 6px 0 10px; color: var(--tg-hint); }
+
+form{
+  display: grid;
+  gap: 10px;
+}
+
+label{
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--tg-text);
+  margin-top: 6px;
+}
+
+small{
+  color: var(--tg-hint);
+  font-size: 12px;
+}
+
+/* Поля как в Telegram */
+input, select, textarea{
+  width: 100%;
+  box-sizing: border-box;
+
+  padding: 12px 12px;
+  border-radius: 12px;
+
+  background: var(--tg-secondary-bg) !important;
+  color: var(--tg-text) !important;
+
+  border: 1px solid rgba(127,127,127,0.22);
+  outline: none;
+
+  /* важно для iOS/Android WebView */
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+select{
+  padding-right: 36px;
+}
+
+input::placeholder, textarea::placeholder{
+  color: var(--tg-hint);
+  opacity: 1;
+}
+
+input:focus, select:focus, textarea:focus{
+  border-color: rgba(127,127,127,0.45);
+}
+
+/* Кнопка под Telegram */
+button{
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+
+  border: none;
+  cursor: pointer;
+
+  background: var(--tg-button);
+  color: var(--tg-button-text);
+  font-weight: 700;
+  font-size: 15px;
+}
+
+/* Карточка результата */
+#result{
+  margin-top: 14px;
+  padding: 12px;
+  background: var(--tg-secondary-bg);
+  border-radius: 14px;
+  color: var(--tg-text);
+}
+
+/* Таблица более "тележная" */
+table{
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+th, td{
+  padding: 10px;
+  border-bottom: 1px solid rgba(127,127,127,0.18);
+  color: var(--tg-text);
+  font-size: 13px;
+}
+
+th{
+  color: var(--tg-hint);
+  font-weight: 600;
+  background: transparent;
+}
+
+/* Предупреждения/ошибки */
+.warning{ color: #ff3b30; font-weight: 700; }
+.error{
+  border: 2px solid #ff3b30 !important;
+  background: rgba(255,59,48,0.08) !important;
+}
+
+/* Блок перегородок тоже в стиле карточки */
+#bafflesParams{
+  background: var(--tg-secondary-bg) !important;
+  border: 1px dashed rgba(127,127,127,0.35) !important;
+  border-radius: 14px !important;
+  padding: 12px !important;
+}
+
+/* На очень узких экранах */
+@media (max-width: 420px){
+  h1{ font-size: 16px; }
+  input, select, textarea{ padding: 12px; }
+}
+
+/* Последняя правка для убирания зума */
+/*html { -webkit-text-size-adjust: 100%; }*/
+/*input,select,textarea { font-size: 16px !important; }*/
+/* Последняя правка для убирания зума */
+/*form, #result, #bafflesParams { transform: none !important; }*/
+
+    </style>
+    
+    
+<!--Скрипт загрузки Telegram Web App-->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<!--Скрипт адаптирует внешний вид веб-страницы под тему Telegram Web App -->
+<script>
+  function applyTgTheme() {
+    const tg = window.Telegram?.WebApp;
+    if (!tg) return;
+
+    const tp = tg.themeParams || {};
+    const root = document.documentElement;
+
+    root.style.setProperty('--tg-bg', tp.bg_color || '#ffffff');
+    root.style.setProperty('--tg-text', tp.text_color || '#000000');
+    root.style.setProperty('--tg-hint', tp.hint_color || '#707579');
+    root.style.setProperty('--tg-link', tp.link_color || '#3390ec');
+    root.style.setProperty('--tg-button', tp.button_color || '#3390ec');
+    root.style.setProperty('--tg-button-text', tp.button_text_color || '#ffffff');
+    root.style.setProperty('--tg-secondary-bg', tp.secondary_bg_color || '#f4f4f5');
+  }
+
+  const tg = window.Telegram?.WebApp;
+  if (tg) {
+    tg.ready();
+    tg.expand();
+    applyTgTheme();
+    tg.onEvent('themeChanged', applyTgTheme);
+  }
+</script>
+</head>
+<!--<Скрипт закрытия клавиатуры>--> 
+<script>
+
+function closeKb(el){
+  el.blur();
+  window.scrollTo(0, 0);
+}
+
+document.addEventListener('focusin', e => {
+  const el = e.target;
+  if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+
+    // iOS Telegram вместо keydown
+    el.addEventListener('beforeinput', ev => {
+      if (ev.inputType === 'insertLineBreak') {
+        ev.preventDefault();
+        closeKb(el);
+      }
+    });
+
+    el.addEventListener('change', () => closeKb(el));
+  }
+});
+</script>
+
+
+<body>
+    <h1>Расчёт вала мешалки по Захарова А.А.</h1>
+    <!--<p>ω  — ближайшее значение от E<br>B и K₁ — по ψ₁ (без перегородок)<br>При перегородках: v_cp → θ → K₁(θ)</p>--> 
+    
+    <form id="mixerForm" novalidate>
+        <label>Диаметр вала d, мм</label>
+        <input id="d_mm" type="number" step="0.1" value="40" />
+
+        <label>Длина вала L, м</label>
+        <input id="L_m" type="number" step="0.001" value="1.5" />
+        
+        <label>Модуль упругости E, ГПа</label>
+        <input id="E_GPa" type="number" step="0.1" value="210" />
+        
+        <label>Коэффициент динамичности нагрузки K₀ (из текста: 1.2/1.5/2.0)</label>
+      <select id="K0">
+        <option value="1.2">1.2 (турбинные/3-лопастные с перегородками)</option>
+        <option value="1.5" selected>1.5 (турбинные/3-лопастные без перегородок)</option>
+        <option value="2.0">2.0 (рамные и лопастные)</option>
+        <option value="custom">Ввести вручную…</option>
+      </select>
+      <input id="K0_custom" type="number" step="0.01" value="1.5" style="display:none" />
+        
+        <label>Плотность материала ρ, кг/м³</label>
+        <input id="rho" type="number" step="1" value="7850" />
+        
+        <label>Обороты мешалки n, об/мин</label>
+        <input id="n_rpm" type="number" step="1" value="180" />
+        
+        <label>Номинальная мощность двигателя N, кВт</label>
+        <input id="N_kW" type="number" step="0.01" value="5.5" />
+        
+        <label>Допускаемое напряжение [σ], МПа</label>
+        <input id="sigma_allow_MPa" type="number" step="1" value="120" />
+
+        <label>Масса мешалки mₘ, кг</label>
+        <input id="m_m" type="number" step="0.1" value="35" />
+        
+        <label>Координата центра масс мешалки l₁ от верхней опоры, м</label>
+        <input id="l1_m" type="number" step="0.001" value="1.5" />
+
+        <label>Эксцентриситет e, м</label>
+        <input id="e_m" type="number" step="0.000001" value="0.00003" />
+        <small>*можно принять e = 2·L·10⁻⁵</small>
+
+        <label>Допускаемое биение δ, м (в тексте можно принять δ = 0.0001)</label>
+        <input id="delta_m" type="number" step="0.000001" value="0.0001" />
+        <small>*можно принять δ = 0.0001</small>
+
+         <label>Схема вала для определения a₁ (рис. 5.1)</label>
+      <select id="shaft_type">
+        <option value="single" selected>а) одноопорный (консольный, верхняя опора)</option>
+        <option value="double">б) двухопорный (на двух опорах)</option>
+      </select>
+
+      <div id="double_extra" style="display:none">
+  <label>Для двухопорного: выбери относительную координату центра масс l̄₁ = l₁/L</label>
+  <select id="lbar_select">
+    <option value="0.5">0.5</option>
+    <option value="0.6">0.6</option>
+    <option value="0.7" selected>0.7</option>
+    <option value="0.8">0.8</option>
+    <option value="0.9">0.9</option>
+  </select>
+  <small>Для двухопорного L считается автоматически: L = l₁ / l̄₁</small>
+</div>
+
+<div id="a1_manual_wrap" style="display:none">
+        <label>a₁ вручную (безразмерный)</label>
+        <input id="a1_manual" type="number" step="0.001" value="1.1" />
+      </div>
+        
+        <button type="button" id="calculateMixer">Рассчитать</button>
+    </form>
+    
+    <div id="result"></div>
+
+    <script type="module">
+        
+import { A1_SINGLE, A1_DOUBLE } from './data.js' 
+
+       (function () {
+  /* =========================
+     1) DOM helpers + cache
+     ========================= */
+  const $ = (id) => document.getElementById(id);
+
+  // кешируем элементы, чтобы не дёргать DOM по 100 раз
+  const el = {
+    d_mm: $("d_mm"), L_m: $("L_m"), l1_m: $("l1_m"), E_GPa: $("E_GPa"), rho: $("rho"), n_rpm: $("n_rpm"),
+    N_kW: $("N_kW"), sigma_allow_MPa: $("sigma_allow_MPa"), m_m: $("m_m"), e_m: $("e_m"), delta_m: $("delta_m"),
+    shaft_type: $("shaft_type"), lbar_select: $("lbar_select"), K0: $("K0"), K0_custom: $("K0_custom"), a1_manual: $("a1_manual"),
+    double_extra: $("double_extra"), a1_manual_wrap: $("a1_manual_wrap"), calculateMixer: $("calculateMixer"), result: $("result"),
+  };
+
+  const show = (nodeOrId, on) => {
+    const node = typeof nodeOrId === "string" ? $(nodeOrId) : nodeOrId;
+    if (node) node.style.display = on ? "" : "none";
+  };
+
+  const num = (inputEl, fallback = NaN) => {
+    const v = Number(inputEl?.value);
+    return Number.isFinite(v) ? v : fallback;
+  };
+
+  const clamp = (x, a, b) => Math.min(Math.max(x, a), b);
+
+  function fmt(x, digits = 4) {
+    if (!Number.isFinite(x)) return "—";
+    const ax = Math.abs(x);
+    if (ax !== 0 && (ax < 1e-3 || ax > 1e6)) return x.toExponential(3);
+    return Number(x).toFixed(digits);
+  }
+
+  /* =========================
+     2) Interpolation helpers
+     ========================= */
+  function lerp(x0, y0, x1, y1, x) {
+    if (x1 === x0) return y0;
+    return y0 + (y1 - y0) * ((x - x0) / (x1 - x0));
+  }
+
+  function interpTable(points, x) {
+    if (x <= points[0][0]) return points[0][1];
+    for (let i = 0; i < points.length - 1; i++) {
+      const [x0, y0] = points[i];
+      const [x1, y1] = points[i + 1];
+      if (x >= x0 && x <= x1) return lerp(x0, y0, x1, y1, x);
+    }
+    return points[points.length - 1][1];
+  }
+
+  /* =========================
+     3) a1 charts (как у тебя)
+     ========================= */
+  // Табличные данные (оставил твои как есть — не менял)
+  
+
+  function a1FromChart(shaftType, mbar, lbar) {
+  if (!Number.isFinite(mbar)) return NaN;
+
+  // одноопорный
+  if (shaftType === "single") {
+    return interpTable(A1_SINGLE, clamp(mbar, 0, 3));
+  }
+
+  // двухопорный: выбираем ближайшее l̄ из таблицы
+  const keys = Object.keys(A1_DOUBLE).map(Number).sort();
+  const lbarClamped = clamp(lbar, keys[0], keys[keys.length - 1]);
+
+  // ищем два ближайших ключа
+  let k1 = keys[0], k2 = keys[keys.length - 1];
+  for (let i = 0; i < keys.length - 1; i++) {
+    if (lbarClamped >= keys[i] && lbarClamped <= keys[i + 1]) {
+      k1 = keys[i];
+      k2 = keys[i + 1];
+      break;
+    }
+  }
+
+  const a1_1 = interpTable(A1_DOUBLE[k1.toFixed(1)], clamp(mbar, 0, 5));
+  if (k1 === k2) return a1_1;
+
+  const a1_2 = interpTable(A1_DOUBLE[k2.toFixed(1)], clamp(mbar, 0, 5));
+
+  // линейная интерполяция по l̄
+  return lerp(k1, a1_1, k2, a1_2, lbarClamped);
+}
+
+  /* =========================
+     4) Read + normalize inputs
+     ========================= */
+  function readInputs() {
+    const shaftType = el.shaft_type.value;
+
+    const K0 =
+      el.K0.value === "custom" ? num(el.K0_custom, 1.5) : Number(el.K0.value);
+
+    return {
+      shaftType,
+      d_mm: num(el.d_mm, 40),
+      L_m: num(el.L_m, 1.5),
+      l1_m: num(el.l1_m, NaN),
+      E_GPa: num(el.E_GPa, 210),
+      rho: num(el.rho, 7850),
+      n_rpm: num(el.n_rpm, 180),
+      N_kW: num(el.N_kW, 5.5),
+      sigma_allow_MPa: num(el.sigma_allow_MPa, 120),
+      m_m: num(el.m_m, 35),
+      e_m: num(el.e_m, 0.00003),
+      delta_m: num(el.delta_m, 0.0001),
+      lbar_select: num(el.lbar_select, 0.7),
+      K0,
+      a1mode: "approx", // у тебя сейчас так и задумано
+      a1_manual: num(el.a1_manual, NaN),
+    };
+  }
+
+  function normalizeGeometry(inp) {
+    let { shaftType, L_m: L, l1_m: l1, lbar_select: lbar } = inp;
+
+    if (shaftType === "double") {
+      // double: пользователь задаёт l1, L = l1/lbar
+      if (!Number.isFinite(l1) || l1 <= 0) throw new Error("Для двухопорного вала задайте l1 > 0.");
+      if (!Number.isFinite(lbar) || lbar <= 0) throw new Error("Для двухопорного вала выберите l̄1 > 0.");
+      L = l1 / lbar;
+    } else {
+      // single: пользователь задаёт L, а l1 = L
+      if (!Number.isFinite(L) || L <= 0) throw new Error("Задайте L > 0.");
+      l1 = L;
+      lbar = 1.0;
+    }
+
+    return { ...inp, L_m: L, l1_m: l1, lbar_select: lbar };
+  }
+
+  /* =========================
+     5) UI sync
+     ========================= */
+  function syncUI() {
+    const inp = readInputs();
+    const shaftType = inp.shaftType;
+
+    show(el.double_extra, shaftType === "double");
+    show(el.a1_manual_wrap, inp.a1mode === "manual");
+
+    // K0 custom
+    el.K0_custom.style.display = el.K0.value === "custom" ? "" : "none";
+
+    if (shaftType === "double") {
+      // ✅ двухопорный: l1 вводится, L считается
+      el.l1_m.disabled = false;
+      el.L_m.disabled = true;
+
+      try {
+        const norm = normalizeGeometry(inp);
+        el.L_m.value = Number.isFinite(norm.L_m) ? norm.L_m.toFixed(4) : "";
+      } catch {
+        // если пока нет l1 — просто очищаем L
+        el.L_m.value = "";
+      }
+    } else {
+      // ✅ одноопорный: L вводится, l1 = L и disabled
+      el.L_m.disabled = false;
+      el.l1_m.value = el.L_m.value;
+      el.l1_m.disabled = true;
+    }
+  }
+
+  /* =========================
+     6) Compute (твоя математика)
+     ========================= */
+  function compute(norm) {
+    const {
+      shaftType, d_mm, L_m: L, l1_m: l1, lbar_select: lbar, E_GPa, rho, n_rpm, 
+      N_kW, sigma_allow_MPa, m_m, e_m: e, delta_m: delta, K0, a1mode, a1_manual,
+    } = norm;
+
+    // units
+    const d = d_mm / 1000.0;               // м
+    const E = E_GPa * 1e9;                 // Па
+    const sigma_allow = sigma_allow_MPa * 1e6; // Па
+    const N = N_kW * 1000.0;               // Вт
+    const omega = Math.PI * n_rpm / 30.0;  // рад/с
+    const I = Math.PI * Math.pow(d, 4) / 64.0;          // м^4
+    const me = (Math.PI * Math.pow(d, 2) / 4.0) * rho;  // кг/м
+    const mbar = (me * L > 0) ? (m_m / (me * L)) : NaN;
+
+    // a1
+    let a1;
+    if (a1mode === "manual") {
+      a1 = a1_manual;
+    } else {
+      a1 = a1FromChart(shaftType, mbar, lbar);
+    }
+
+    // omega0 (5.2)
+    const omega0 = Math.pow(a1 / L, 2) * Math.sqrt((E * I) / me);
+    const ratio = omega / omega0;
+    const rigid_ok = omega <= 0.7 * omega0;
+    const flexible_ok = omega >= 1.35 * omega0;
+
+    // Mk (5.3)
+    const Mk = (omega > 0) ? (K0 * N / omega) : NaN;
+
+    // q (5.7)
+    // q = 12 / ((4.6 - 3*lbar)^4 * (lbar)^2 * (3 + lbar)^2)
+    let q = NaN;
+    if (Number.isFinite(lbar) && lbar > 0) {
+      const t = 4.6 - 3.0 * lbar;
+      q = 12.0 / (Math.pow(t, 4) * Math.pow(lbar, 2) *(3.0 + lbar));
+    }
+
+    // mpr (5.6)
+    const mpr = m_m + q * me * L;
+
+    // r (5.5)
+    const denom = 1.0 - ratio * ratio;
+    const r = (Math.abs(denom) > 1e-12) ? ((e + 0.5 * delta) / denom) : Infinity;
+
+    // Pc (5.4)
+    const Pc = mpr * omega * omega * r;
+
+    // Mu
+    let Mu;
+    if (shaftType === "single") {
+      Mu = Pc * l1;
+    } else {
+      const x = clamp(l1, 0, L);
+      Mu = (L > 0) ? (Pc * x * (L - x) / L) : NaN;
+    }
+
+    // stresses (5.8)
+    const Wx = 0.1 * Math.pow(d, 3);
+    const Wp = 0.2 * Math.pow(d, 3);
+    const sigma = Mu / Wx;                  // Па
+    const tau = Mk / Wp;                    // Па
+    const sigma_eq = Math.sqrt(sigma * sigma + 3.0 * tau * tau);
+    const strength_ok = sigma_eq <= sigma_allow;
+    const nearRes = Math.abs(denom) < 0.15;
+    const warnings = [];
+    if (nearRes) warnings.push("⚠️ Близко к резонансу: (1-(ω/ω0)^2) маленькое, r и Pц растут.");
+    if (!Number.isFinite(r)) warnings.push("⚠️ r стало бесконечным (ω≈ω0). Это зона резонанса — так работать нельзя.");
+    if (Number.isFinite(r) && Math.abs(r) > 0.01) warnings.push("⚠️ r получилось довольно большим (часто ω близко к ω0 или большие e/δ).");
+
+    return {
+      // inputs / derived
+      shaftType, d_mm, d, L, l1, lbar, E_GPa, rho, n_rpm, N_kW, sigma_allow_MPa,
+      omega, omega0, ratio, I, me, mbar, a1, K0,
+
+      // results
+      rigid_ok, flexible_ok, Mk, q, mpr, r, Pc, Mu, Wx, Wp,
+      sigma, tau, sigma_eq, strength_ok, warnings
+    };
+  }
+
+  /* =========================
+     7) Render
+     ========================= */
+  function render(res) {
+    const row = (name, value, note = "") =>
+      `<tr><td>${name}</td><td>${value}</td><td>${note}</td></tr>`;
+
+    const ok = (v) => (v ? "✅ OK" : "❌ НЕ ОК");
+
+    const rows = [];
+    rows.push(row("d", `${fmt(res.d_mm, 1)} мм`, `${fmt(res.d, 4)} м`));
+    rows.push(row("L", `${fmt(res.L, 4)} м`));
+    rows.push(row("l₁", `${fmt(res.l1, 4)} м`, `l̄₁ = ${fmt(res.lbar, 4)}`));
+    rows.push(row("n", `${fmt(res.n_rpm, 0)} об/мин`, `ω = ${fmt(res.omega, 4)} рад/с`));
+    rows.push(row("ω₀", `${fmt(res.omega0, 4)} рад/с`, `ω/ω₀ = ${fmt(res.ratio, 4)}`));
+    rows.push(row("a₁", `${fmt(res.a1, 4)}`, "аппроксимация по графику"));
+    rows.push(row("m̄", `${fmt(res.mbar, 4)}`, "mₘ/(mₑ·L)"));
+    rows.push(row("Mk", `${fmt(res.Mk, 4)} Н·м`, "K0·N/ω"));
+    rows.push(row("q", `${fmt(res.q, 6)}`, "формула (5.7)"));
+    rows.push(row("mпр", `${fmt(res.mpr, 4)} кг`, "mₘ + q·mₑ·L"));
+    rows.push(row("r", `${fmt(res.r, 6)} м`, "(e+0.5·δ)/(1-(ω/ω0)^2)"));
+    rows.push(row("Pц", `${fmt(res.Pc, 4)} Н`, "mпр·ω²·r"));
+    rows.push(row("Mu", `${fmt(res.Mu, 4)} Н·м`, res.shaftType === "single" ? "консоль" : "двухопорная"));
+    rows.push(row("σ", `${fmt(res.sigma / 1e6, 3)} МПа`, "Mu/Wx"));
+    rows.push(row("τ", `${fmt(res.tau / 1e6, 3)} МПа`, "Mk/Wp"));
+    rows.push(row("σэкв", `${fmt(res.sigma_eq / 1e6, 3)} МПа`, "sqrt(σ²+3τ²)"));
+    rows.push(row("Прочность", ok(res.strength_ok), `[σ] = ${fmt(res.sigma_allow_MPa, 3)} МПа`));
+    rows.push(row("Вибро (жёсткий)", ok(res.rigid_ok), "ω ≤ 0.7·ω0"));
+    rows.push(row("Вибро (гибкий)", ok(res.flexible_ok), "ω ≥ 1.35·ω0"));
+
+    el.result.innerHTML = `
+      <h2>Результаты (вал мешалки)</h2>
+      <table>
+        <tr><th>Величина</th><th>Значение</th><th>Примечание</th></tr>
+        ${rows.join("")}
+      </table>
+      ${res.warnings.length ? `<p class="warning">${res.warnings.join("<br>")}</p>` : ""}
+    `;
+  }
+
+  /* =========================
+     8) Actions
+     ========================= */
+  function calcAndRender() {
+    syncUI(); // чтобы L/l1 гарантированно синхронизировались
+    try {
+      const inp = readInputs();
+      const norm = normalizeGeometry(inp);
+      const res = compute(norm);
+      render(res);
+    } catch (e) {
+      el.result.innerHTML = `<p class="warning">⚠️ ${e.message}</p>`;
+    }
+  }
+
+  /* =========================
+     9) Listeners
+     ========================= */
+  el.calculateMixer.addEventListener("click", calcAndRender);
+
+  el.shaft_type.addEventListener("change", () => { syncUI(); });
+  el.K0.addEventListener("change", () => { syncUI(); });
+
+  // a1_mode у тебя в HTML нет — ставим защиту (чтобы не падало)
+  const a1ModeEl = $("a1_mode");
+  if (a1ModeEl) a1ModeEl.addEventListener("change", () => { syncUI(); });
+
+  el.lbar_select.addEventListener("change", () => { syncUI(); });
+
+  ["d_mm", "L_m", "l1_m"].forEach((id) => {
+    const node = $(id);
+    if (node) node.addEventListener("input", () => { syncUI(); });
+  });
+
+  // init
+  syncUI();
+})();
+</script>
+</body>
+</html>
