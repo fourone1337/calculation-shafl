@@ -510,7 +510,7 @@ import { A1_SINGLE, A1_DOUBLE } from './data.js'
 
     // r (5.5)
     const denom = 1.0 - ratio * ratio;
-    const r = (Math.abs(denom) > 1e-12) ? ((e + 0.5 * delta) / denom) : Infinity;
+    const r = ((e + 0.5 * delta) / denom);
 
     // Pc (5.4)
     const Pc = mpr * omega * omega * r;
