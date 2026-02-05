@@ -521,7 +521,7 @@ import { A1_SINGLE, A1_DOUBLE } from './data.js'
       Mu = Pc * l1;
     } else {
       const x = clamp(l1, 0, L);
-      Mu = (L > 0) ? (Pc * x * (L - x) / L) : NaN;
+      Mu = (L > 0) ? (Pc * l1) : NaN;
     }
 
     // stresses (5.8)
